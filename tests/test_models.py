@@ -1,83 +1,81 @@
+from datetime import date
+
 import pytest
-from sqlmodel import SQLModel, create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from app.models import Author, Book, Category
+from app.models import Author, Base, Book, Category
 
-
-@pytest.fixture(name="database_url")
-def database_url_fixture():
-    return "sqlite:///:memory:"
-
-
-@pytest.fixture(name="engine")
-def engine_fixture(database_url):
-    engine = create_engine(database_url)
-    return engine
+DATABASE_URL = "sqlite:///./test.db"
 
 
-@pytest.fixture(name="create_tables")
-def create_tables_fixture(engine):
-    SQLModel.metadata.create_all(engine)
-    yield
-    SQLModel.metadata.drop_all(engine)
+@pytest.fixture(scope="module")
+def engine():
+    if not database_exists(DATABASE_URL):
+        create_database(DATABASE_URL)
+
+    engine = create_engine(DATABASE_URL)
+
+    yield engine
+
+    drop_database(DATABASE_URL)
 
 
-def test_author_book_relationship(engine, create_tables):
-    from sqlmodel import Session
+@pytest.fixture(scope="module")
+def session(engine):
+    Base.metadata.create_all(engine)
+    session = Session(engine)
 
-    with Session(engine) as session:
-        author = Author(name="John Doe")
-        book = Book(
-            title="Test Book",
-            author_id=1,
-            category_id=1,
-            publication_date="2023-01-01",
-            editor="Test Editor",
-            description="A test book description.",
-        )
-        author.books = [book]
+    yield session
 
-        session.add(author)
-        session.commit()
-
-        session.refresh(author)
-        session.refresh(book)
-
-        assert book.author_id == author.id
-        assert book.author == author
-        assert author.books[0] == book
+    session.close()
+    Base.metadata.drop_all(engine)
 
 
-def test_category_book_relationship(engine, create_tables):
-    from sqlmodel import Session
+def test_author_and_book_relationship(session):
+    author = Author(name="John Doe")
+    session.add(author)
+    session.commit()
 
-    with Session(engine) as session:
-        author = Author(name="Test Author")
-        session.add(author)
-        session.commit()
-        session.refresh(author)
+    book = Book(
+        title="Test Book",
+        author_id=author.id,
+        publication_date=date(2023, 4, 10),
+        editor="Test Editor",
+        description="Test Description",
+        category_id=None,
+    )
+    session.add(book)
+    session.commit()
 
-        category = Category(name="Fiction")
-        session.add(category)
-        session.commit()
-        session.refresh(category)
+    fetched_book = session.query(Book).filter(Book.id == book.id).one()
+    fetched_author = session.query(Author).filter(Author.id == author.id).one()
 
-        book = Book(
-            title="Test Book",
-            author_id=author.id,
-            category_id=category.id,
-            publication_date="2023-01-01",
-            editor="Test Editor",
-            description="A test book description.",
-        )
-        category.books = [book]
+    assert fetched_book.author.id == fetched_author.id
+    assert fetched_book.author.name == "John Doe"
+    assert fetched_author.books[0].title == "Test Book"
 
-        session.add(book)
-        session.commit()
 
-        session.refresh(category)
-        session.refresh(book)
+def test_category_and_book_relationship(session):
+    category = Category(name="Fiction")
+    session.add(category)
+    session.commit()
 
-        assert book.category_id == category.id
-        assert book.category == category
-        assert category.books[0] == book
+    book = Book(
+        title="Test Book 2",
+        category_id=category.id,
+        publication_date=date(2023, 4, 10),
+        editor="Test Editor",
+        description="Test Description",
+        author_id=None,
+    )
+    session.add(book)
+    session.commit()
+
+    fetched_book = session.query(Book).filter(Book.id == book.id).one()
+    fetched_category = session.query(Category).filter(Category.id == category.id).one()
+
+    assert fetched_book.category.id == fetched_category.id
+    assert fetched_book.category.name == "Fiction"
+    assert fetched_category.books[0].title == "Test Book 2"
