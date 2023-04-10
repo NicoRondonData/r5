@@ -5,6 +5,7 @@ from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     database_host: str = "postgresql+asyncpg://localhost@r5-db:5432/r5"
+    auth_secret: str = "SECRET"
 
 
 @lru_cache()

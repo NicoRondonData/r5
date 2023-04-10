@@ -7,8 +7,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel import SQLModel
 
-from app.base.settings import get_settings
-from app.models import Author
+from app.models import Author, Book, Category
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
