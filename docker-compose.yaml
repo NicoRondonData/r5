@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  r5:
+    build: .
+    volumes:
+      - .:/code
+    ports:
+      - "8042:8042"
+    environment:
+      - DATABASE_HOST=postgresql+asyncpg://postgres:postgres@r5-db:5432/r5
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@r5-db:5432/r5
+    depends_on:
+      r5-db:
+        condition: service_healthy
+
+
+  r5-db:
+    image: postgres:14
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=r5 # has to match with r5 db in DATABASE_URL
+    healthcheck:
+      test: "exit 0"
