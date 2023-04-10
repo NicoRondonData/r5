@@ -9,3 +9,7 @@ greenlet==2.0.2
 gunicorn==20.1.0
 fastapi==0.95.0
 uvicorn>=0.15.0,<0.16.0
+alembic==1.7.1
+psycopg2-binary==2.9.1
+pytest==7.3.0
+sqlalchemy==1.4.35
