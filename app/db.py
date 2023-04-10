@@ -1,12 +1,10 @@
-import os
-
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_HOST = os.environ.get(
-    "DATABASE_HOST", "postgresql+asyncpg://localhost@r5-db:5432/r5"
-)
+from app.base.settings import get_settings
+
+DATABASE_HOST = get_settings().database_host
 engine = create_async_engine(DATABASE_HOST, echo=True, future=True)
 
 
