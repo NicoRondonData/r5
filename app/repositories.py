@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from pydantic.main import BaseModel
-from sqlmodel import select
+from sqlalchemy import select
 
 from app.models import Author
 
@@ -14,10 +14,10 @@ class AbstractRepository(ABC):
     async def add(self, author: str) -> BaseModel:
         pass
 
-    # @abstractmethod
-    # async def get_by_id(self, id: int) -> Optional[BaseModel]:
-    #     pass
-    #
+    @abstractmethod
+    async def get_all(self):
+        pass
+
     # @abstractmethod
     # async def get_by_field(self, search_text: str) -> List[BaseModel]:
     #     pass
@@ -26,4 +26,11 @@ class AbstractRepository(ABC):
 class AuthorRepository(AbstractRepository):
     async def add(self, author: Author) -> Author:
         new_author = self._session.add(author)
+        await self._session.flush()
         return new_author
+
+    async def get_all(self):
+        statement = select(Author)
+
+        results = (await self._session.execute(statement)).all()
+        return results

@@ -9,10 +9,10 @@ services:
     environment:
       - DATABASE_HOST=postgresql+asyncpg://postgres:postgres@r5-db:5432/r5
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@r5-db:5432/r5
+      - REDIS_URL=redis://redis:6379 # Nueva variable de entorno para Redis
     depends_on:
       r5-db:
         condition: service_healthy
-
 
   r5-db:
     image: postgres:14
@@ -23,6 +23,6 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=r5 # has to match with r5 db in DATABASE_URL
+      - POSTGRES_DB=r5 # tiene que coincidir con la base de datos r5 en DATABASE_URL
     healthcheck:
       test: "exit 0"

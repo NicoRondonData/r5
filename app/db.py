@@ -13,8 +13,18 @@ async def init_db():
         return 0
 
 
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
 async def get_session() -> AsyncSession:
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-    async with async_session() as session:
+    session = async_session()
+    try:
         yield session
+        await session.commit()
+    except:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
