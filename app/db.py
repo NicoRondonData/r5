@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.base.settings import get_settings
 
-DATABASE_HOST = get_settings().database_host
+DATABASE_HOST = get_settings().database_url
 engine = create_async_engine(DATABASE_HOST, echo=True, future=True)
 
 

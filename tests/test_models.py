@@ -1,36 +1,8 @@
 from datetime import date
 
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy_utils import create_database, database_exists, drop_database
+from fastapi.testclient import TestClient
 
-from app.models import Author, Base, Book, Category
-
-DATABASE_URL = "sqlite:///./test.db"
-
-
-@pytest.fixture(scope="module")
-def engine():
-    if not database_exists(DATABASE_URL):
-        create_database(DATABASE_URL)
-
-    engine = create_engine(DATABASE_URL)
-
-    yield engine
-
-    drop_database(DATABASE_URL)
-
-
-@pytest.fixture(scope="module")
-def session(engine):
-    Base.metadata.create_all(engine)
-    session = Session(engine)
-
-    yield session
-
-    session.close()
-    Base.metadata.drop_all(engine)
+from app.models import Author, Book, Category
 
 
 def test_author_and_book_relationship(session):
