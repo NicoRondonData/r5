@@ -1,4 +1,16 @@
 # Backend developer - Prueba técnica
+## Ejecutar
+`
+docker-compose up -d
+`
+
+`
+docker exec -it r5_library-r5-1 alembic upgrade head
+`
+
+visitar http://localhost:8042/graphql
+
+
 ## Reto: Biblioteca
 ### Objetivo: Crear un API web que permita administrar una pequeña biblioteca. El servicio
 Tiene un repositorio interno y además se alimenta de 2 APIs públicas.
