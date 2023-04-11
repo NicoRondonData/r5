@@ -1,11 +1,14 @@
+import asyncio
 from typing import List
 
 import strawberry
-from sqlalchemy import Text, or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from app.db import get_session
-from app.graphql.types import AuthorType, BookType, CategoryType
+from app.graphql.services import fetch_local_books, fetch_oreilly_books
+from app.graphql.types import CategoryType  # noqa
+from app.graphql.types import AuthorType, BookType, SearchResultType
 from app.models import Author, Book, Category
 
 
@@ -44,25 +47,9 @@ class BookQuery:
             return records
 
     @strawberry.field
-    async def search_books(self, term: str) -> List[BookType]:
-        async with get_session() as session:
-            statement = (
-                select(Book)
-                .options(joinedload(Book.author), joinedload(Book.category))
-                .where(
-                    or_(
-                        Book.title.ilike(f"%{term}%"),
-                        Book.subtitle.ilike(f"%{term}%"),
-                        Book.author.has(Author.name.ilike(f"%{term}%")),
-                        Book.category.has(Category.name.ilike(f"%{term}%")),
-                        Book.publication_date.cast(Text).ilike(
-                            f"%{term}%"
-                        ),  # cast date to text
-                        Book.editor.ilike(f"%{term}%"),
-                        Book.description.ilike(f"%{term}%"),
-                    )
-                )
-            )
-            result = await session.execute(statement)
-            records = result.scalars().all()
-            return records
+    async def search_books(self, term: str) -> SearchResultType:
+        oreilly_books, local_books = await asyncio.gather(
+            fetch_oreilly_books(term), fetch_local_books(term)
+        )
+
+        return SearchResultType(local_books=local_books, oreilly_books=oreilly_books)

@@ -5,7 +5,7 @@ from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://localhost@r5-db:5432/r5"
-    auth_secret: str = "SECRET"
+    oreilly_api_url = "https://learning.oreilly.com/api/v2/"
 
 
 @lru_cache()
