@@ -1,6 +1,6 @@
 # schemas.py
 from datetime import date
-from typing import Optional
+from typing import List, Optional
 
 import strawberry
 
@@ -32,6 +32,17 @@ class CategoryType:
 
 
 #
+@strawberry.type
+class OreillyBookType:
+    archive_id: str
+    title: str
+    authors: List[str]
+    description: str
+    cover_url: str
+
+    @strawberry.field
+    def source(self) -> str:
+        return "oreilly"
 
 
 @strawberry.type
@@ -39,15 +50,16 @@ class BookType:
     id: int
     title: str
     subtitle: Optional[str]
-    # author_id: int
     author: Optional[AuthorType]
-    # category_id: int
     category: Optional[CategoryType]
     publication_date: str
     editor: str
     description: str
     image: Optional[str]
-    # source: Optional[str] = "db"
+
+    @strawberry.field
+    def source(self) -> str:
+        return "db"
 
 
 @strawberry.input
@@ -61,3 +73,9 @@ class InputBookType:
     description: str
     image: Optional[str]
     # source: Optional[str] = "db"
+
+
+@strawberry.type
+class SearchResultType:
+    local_books: List[BookType]
+    oreilly_books: List[OreillyBookType]
